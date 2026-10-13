@@ -1,0 +1,1 @@
+W3Admin is a full-stack web dashboard for managing products, categories, and customers, with data-driven analytics and a clean, responsive interface. Built with React, Node.js, Express, and MySQL as a hands-on project to explore full-stack JavaScript development, REST APIs, and database integration.
