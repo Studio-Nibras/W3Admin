@@ -60,7 +60,7 @@ router.get("/", async (req, res) => {
           Price AS price
         FROM products
         ${whereClause}
-        ORDER BY ProductID DESC
+        ORDER BY ProductID ASC
         LIMIT ? OFFSET ?
       `,
       [...params, limit, offset],
@@ -352,17 +352,10 @@ router.delete("/:id", async (req, res) => {
     return res.status(200).json({
       status: "success",
       message: "Product deleted successfully",
-      data: {
-        id,
-      },
+      data: { id },
     });
   } catch (error) {
-    console.error("Delete product error:", {
-      code: error.code,
-      errno: error.errno,
-      sqlState: error.sqlState,
-      message: error.message,
-    });
+    console.error("Delete product error:", error.message);
 
     if (
       error.code === "ER_ROW_IS_REFERENCED" ||
@@ -376,17 +369,12 @@ router.delete("/:id", async (req, res) => {
           "Cannot delete product because it is referenced by existing order details",
       });
     }
-    return res.status(409).json({
+
+    return res.status(500).json({
       status: "error",
-      message:
-        "Cannot delete product because it is referenced by existing order details",
+      message: "Failed to delete product",
     });
   }
-
-  return res.status(500).json({
-    status: "error",
-    message: "Failed to delete product",
-  });
 });
 
 module.exports = router;

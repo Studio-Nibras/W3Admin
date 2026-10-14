@@ -12,13 +12,13 @@ export default function DataTable({
   return (
     <div className="relative overflow-x-auto">
       <table className="w-full min-w-[640px] text-left text-sm">
-        <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+        <thead className="bg-emerald-50/55 text-xs uppercase tracking-wide text-emerald-900/65">
           <tr>
             {columns.map((column) => (
               <th
                 key={column.key}
                 scope="col"
-                className={`px-5 py-3 font-medium ${column.className ?? ""}`}
+                className={`border-b border-emerald-950/5 px-5 py-3 font-semibold ${column.className ?? ""}`}
               >
                 {column.header}
               </th>
@@ -26,13 +26,13 @@ export default function DataTable({
           </tr>
         </thead>
 
-        <tbody className="divide-y divide-slate-100">
+        <tbody className="divide-y divide-emerald-950/5">
           {loading ? (
             <tr>
               <td colSpan={columns.length} className="px-5 py-14 text-center">
                 <LoaderCircle
                   size={22}
-                  className="mx-auto animate-spin text-indigo-600"
+                  className="mx-auto animate-spin text-emerald-600"
                 />
                 <p className="mt-3 text-sm text-slate-500">Loading data...</p>
               </td>
@@ -51,7 +51,7 @@ export default function DataTable({
             data.map((row) => (
               <tr
                 key={getRowKey(row)}
-                className="transition-colors hover:bg-slate-50/70"
+                className="transition-colors hover:bg-emerald-50/35"
               >
                 {columns.map((column) => (
                   <td

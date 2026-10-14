@@ -5,6 +5,9 @@ const cors = require("cors");
 const pool = require("./db");
 const productsRouter = require("./routes/products");
 const dashboardRouter = require("./routes/dashboard");
+const categoriesRouter = require("./routes/categories");
+const suppliersRouter = require("./routes/suppliers");
+const customersRouter = require("./routes/customers");
 
 const app = express();
 
@@ -13,6 +16,9 @@ app.use(express.json());
 
 app.use("/api/dashboard", dashboardRouter);
 app.use("/api/products", productsRouter);
+app.use("/api/categories", categoriesRouter);
+app.use("/api/suppliers", suppliersRouter);
+app.use("/api/customers", customersRouter);
 
 app.get("/api/health", async (req, res) => {
   try {
@@ -32,8 +38,6 @@ app.get("/api/health", async (req, res) => {
     });
   }
 });
-
-app.use("/api/products", productsRouter);
 
 const PORT = process.env.PORT || 3000;
 

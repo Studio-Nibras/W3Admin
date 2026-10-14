@@ -23,8 +23,11 @@ export default function Pagination({
       Math.abs(pageNumber - currentPage) <= 1,
   );
 
+  const pageButtonClass =
+    "rounded-xl p-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-40";
+
   return (
-    <div className="flex flex-col gap-3 border-t border-slate-100 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-3 border-t border-emerald-950/5 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
       <p className="text-xs text-slate-500">
         Showing <span className="font-medium text-slate-700">{startItem}</span>{" "}
         to <span className="font-medium text-slate-700">{endItem}</span> of{" "}
@@ -37,7 +40,7 @@ export default function Pagination({
           aria-label="Previous page"
           disabled={currentPage <= 1}
           onClick={() => onPageChange(currentPage - 1)}
-          className="rounded-lg border border-slate-200 p-2 text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+          className={`${pageButtonClass} border border-emerald-950/10 text-slate-600 hover:bg-emerald-50`}
         >
           <ChevronLeft size={16} />
         </button>
@@ -60,10 +63,11 @@ export default function Pagination({
                 aria-current={currentPage === pageNumber ? "page" : undefined}
                 onClick={() => onPageChange(pageNumber)}
                 className={[
-                  "min-w-9 rounded-lg px-3 py-2 text-xs font-medium",
+                  "min-w-9 rounded-xl px-3 py-2 text-xs font-medium transition",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500",
                   currentPage === pageNumber
-                    ? "bg-indigo-600 text-white"
-                    : "text-slate-600 hover:bg-slate-100",
+                    ? "bg-gradient-to-r from-emerald-600 to-green-700 text-white shadow-sm shadow-emerald-800/15"
+                    : "text-slate-600 hover:bg-emerald-50 hover:text-emerald-800",
                 ].join(" ")}
               >
                 {pageNumber}
@@ -77,7 +81,7 @@ export default function Pagination({
           aria-label="Next page"
           disabled={currentPage >= totalPages}
           onClick={() => onPageChange(currentPage + 1)}
-          className="rounded-lg border border-slate-200 p-2 text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+          className={`${pageButtonClass} border border-emerald-950/10 text-slate-600 hover:bg-emerald-50`}
         >
           <ChevronRight size={16} />
         </button>

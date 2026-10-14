@@ -39,7 +39,7 @@ export default function Modal({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-emerald-950/25 p-4 backdrop-blur-md"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose?.();
       }}
@@ -48,9 +48,13 @@ export default function Modal({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className={`max-h-[90vh] w-full ${sizes[size] ?? sizes.md} overflow-y-auto rounded-2xl bg-white shadow-xl`}
+        className={[
+          "max-h-[90vh] w-full overflow-y-auto rounded-2xl",
+          "border border-white/80 bg-white/85 shadow-[0_24px_80px_rgba(15,70,45,0.22)] backdrop-blur-2xl",
+          sizes[size] ?? sizes.md,
+        ].join(" ")}
       >
-        <header className="flex items-start justify-between gap-4 border-b border-slate-100 px-5 py-4">
+        <header className="flex items-start justify-between gap-4 border-b border-emerald-950/5 px-5 py-4">
           <div className="grid gap-1">
             <h2 id={titleId} className="text-base font-semibold text-slate-900">
               {title}
@@ -65,7 +69,7 @@ export default function Modal({
             type="button"
             onClick={onClose}
             aria-label="Close dialog"
-            className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+            className="rounded-xl p-1.5 text-slate-500 transition hover:bg-emerald-50 hover:text-emerald-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
           >
             <X size={18} />
           </button>

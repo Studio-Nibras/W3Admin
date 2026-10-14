@@ -10,7 +10,7 @@ import {
 
 import { getSalesOverview } from "../../../services/dashboardService";
 import { useEffect, useState } from "react";
-import { Boxes, Users, ShoppingCart, Wallet } from "lucide-react";
+import { Activity, Boxes, Users, ShoppingCart, Wallet } from "lucide-react";
 import StatCard from "../components/StatCard";
 import { getDashboardSummary } from "../../../services/dashboardService";
 import { getRecentOrders } from "../../../services/dashboardService";
@@ -153,20 +153,25 @@ export default function DashboardPage() {
 
   return (
     <section className="space-y-7">
-      <header>
-        <p className="text-sm font-medium text-indigo-600">OVERVIEW</p>
-
-        <div className="mt-2 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
-              Business Overview
-            </h1>
-            <p className="mt-2 text-sm leading-6 text-slate-500">
-              Monitor your products, customers, orders, and sales in one place.
-            </p>
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-emerald-200/80 bg-white/60 px-3 py-1.5 text-xs font-semibold text-emerald-800 shadow-sm backdrop-blur">
+            <Activity size={14} />
+            OVERVIEW
           </div>
 
-          <p className="text-xs text-slate-400">W3Admin Dashboard</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
+            Business Overview
+          </h1>
+
+          <p className="mt-2 text-sm text-slate-600">
+            Monitor your products, customers, orders, and sales in one place.
+          </p>
+        </div>
+
+        <div className="hidden items-center gap-2 rounded-full border border-white/80 bg-white/55 px-3 py-2 text-xs font-medium text-slate-600 shadow-sm backdrop-blur sm:inline-flex">
+          <span className="size-2 rounded-full bg-emerald-500 shadow-[0_0_0_3px_rgba(16,185,129,0.12)]" />
+          W3Admin Dashboard
         </div>
       </header>
 
@@ -236,21 +241,17 @@ export default function DashboardPage() {
                       x2="0"
                       y2="1"
                     >
-                      <stop
-                        offset="0%"
-                        stopColor="#4F46E5"
-                        stopOpacity={0.25}
-                      />
+                      <stop offset="0%" stopColor="#10B981" stopOpacity={0.3} />
                       <stop
                         offset="95%"
-                        stopColor="#06B6D4"
+                        stopColor="#84CC16"
                         stopOpacity={0.02}
                       />
                     </linearGradient>
                   </defs>
 
                   <CartesianGrid
-                    stroke="#E2E8F0"
+                    stroke="#DCEAE2"
                     strokeDasharray="3 3"
                     vertical={false}
                   />
@@ -266,7 +267,7 @@ export default function DashboardPage() {
                         },
                       )
                     }
-                    tick={{ fill: "#94A3B8", fontSize: 11 }}
+                    tick={{ fill: "#84958B", fontSize: 11 }}
                     axisLine={false}
                     tickLine={false}
                     tickMargin={12}
@@ -280,15 +281,17 @@ export default function DashboardPage() {
                         maximumFractionDigits: 1,
                       }).format(value)
                     }
-                    tick={{ fill: "#94A3B8", fontSize: 11 }}
+                    tick={{ fill: "#84958B", fontSize: 11 }}
                     axisLine={false}
                     tickLine={false}
                   />
 
                   <Tooltip
                     contentStyle={{
-                      borderRadius: 12,
-                      border: "1px solid #E2E8F0",
+                      borderRadius: 14,
+                      border: "1px solid rgba(220,234,226,0.9)",
+                      backgroundColor: "rgba(255,255,255,0.92)",
+                      boxShadow: "0 12px 30px rgba(15,70,45,0.12)",
                       fontSize: 12,
                     }}
                     formatter={(value) => [
@@ -312,12 +315,12 @@ export default function DashboardPage() {
                   <Area
                     type="monotone"
                     dataKey="sales"
-                    stroke="#4F46E5"
+                    stroke="#059669"
                     strokeWidth={2.5}
                     fill="url(#salesGradient)"
                     activeDot={{
                       r: 5,
-                      fill: "#4F46E5",
+                      fill: "#059669",
                       stroke: "#FFFFFF",
                       strokeWidth: 2,
                     }}
@@ -337,7 +340,7 @@ export default function DashboardPage() {
               </p>
             </div>
 
-            <span className="rounded-lg bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-600">
+            <span className="rounded-full border border-emerald-200/80 bg-emerald-50/80 px-3 py-1 text-xs font-medium text-emerald-800">
               Latest 5
             </span>
           </div>
@@ -361,7 +364,7 @@ export default function DashboardPage() {
                   key={order.id}
                   className="flex items-start gap-3 border-b border-slate-100 pb-4 last:border-0 last:pb-0"
                 >
-                  <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-indigo-50 text-indigo-600">
+                  <div className="grid size-10 shrink-0 place-items-center rounded-xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-lime-50 text-emerald-700">
                     <ShoppingCart size={18} />
                   </div>
 
