@@ -1,5 +1,6 @@
 const express = require("express");
 const pool = require("../db");
+const logActivity = require("../utils/activityLogger");
 
 const router = express.Router();
 
@@ -105,6 +106,7 @@ router.get("/:id", async (req, res) => {
 });
 
 // POST /api/categories
+
 router.post("/", async (req, res) => {
   const { name, description } = req.body;
 
@@ -126,43 +128,70 @@ router.post("/", async (req, res) => {
     });
   }
 
+  let connection;
+
   try {
-    const [result] = await pool.query(
-      `
-        INSERT INTO categories (CategoryName, Description)
-        VALUES (?, ?)
-      `,
+    connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    const [result] = await connection.query(
+      `INSERT INTO categories (CategoryName, Description)
+       VALUES (?, ?)`,
       [name.trim(), description?.trim() || ""],
     );
 
-    const [categories] = await pool.query(
-      `
-        SELECT
-          CategoryID AS id,
-          CategoryName AS name,
-          Description AS description
-        FROM categories
-        WHERE CategoryID = ?
-      `,
+    const [categories] = await connection.query(
+      `SELECT
+         CategoryID AS id,
+         CategoryName AS name,
+         Description AS description
+       FROM categories
+       WHERE CategoryID = ?`,
       [result.insertId],
     );
+
+    const category = categories[0];
+
+    await logActivity({
+      action: "CREATE",
+      entityType: "CATEGORY",
+      entityId: category.id,
+      description: `Created category: ${category.name}`,
+      metadata: {
+        name: category.name,
+      },
+      connection,
+    });
+
+    await connection.commit();
 
     return res.status(201).json({
       status: "success",
       message: "Category created successfully",
-      data: categories[0],
+      data: category,
     });
   } catch (error) {
+    if (connection) {
+      try {
+        await connection.rollback();
+      } catch (rollbackError) {
+        console.error("Category rollback error:", rollbackError.message);
+      }
+    }
+
     console.error("Create category error:", error.message);
 
     return res.status(500).json({
       status: "error",
       message: "Failed to create category",
     });
+  } finally {
+    if (connection) connection.release();
   }
 });
 
 // PUT /api/categories/:id
+
 router.put("/:id", async (req, res) => {
   const id = Number(req.params.id);
 
@@ -193,56 +222,85 @@ router.put("/:id", async (req, res) => {
     });
   }
 
+  let connection;
+
   try {
-    const [existing] = await pool.query(
+    connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    const [existing] = await connection.query(
       "SELECT CategoryID FROM categories WHERE CategoryID = ?",
       [id],
     );
 
     if (existing.length === 0) {
+      await connection.rollback();
+
       return res.status(404).json({
         status: "error",
         message: "Category not found",
       });
     }
 
-    await pool.query(
-      `
-        UPDATE categories
-        SET CategoryName = ?, Description = ?
-        WHERE CategoryID = ?
-      `,
+    await connection.query(
+      `UPDATE categories
+       SET CategoryName = ?, Description = ?
+       WHERE CategoryID = ?`,
       [name.trim(), description?.trim() || "", id],
     );
 
-    const [categories] = await pool.query(
-      `
-        SELECT
-          CategoryID AS id,
-          CategoryName AS name,
-          Description AS description
-        FROM categories
-        WHERE CategoryID = ?
-      `,
+    const [categories] = await connection.query(
+      `SELECT
+         CategoryID AS id,
+         CategoryName AS name,
+         Description AS description
+       FROM categories
+       WHERE CategoryID = ?`,
       [id],
     );
+
+    const category = categories[0];
+
+    await logActivity({
+      action: "UPDATE",
+      entityType: "CATEGORY",
+      entityId: category.id,
+      description: `Updated category: ${category.name}`,
+      metadata: {
+        name: category.name,
+      },
+      connection,
+    });
+
+    await connection.commit();
 
     return res.status(200).json({
       status: "success",
       message: "Category updated successfully",
-      data: categories[0],
+      data: category,
     });
   } catch (error) {
+    if (connection) {
+      try {
+        await connection.rollback();
+      } catch (rollbackError) {
+        console.error("Category rollback error:", rollbackError.message);
+      }
+    }
+
     console.error("Update category error:", error.message);
 
     return res.status(500).json({
       status: "error",
       message: "Failed to update category",
     });
+  } finally {
+    if (connection) connection.release();
   }
 });
 
 // DELETE /api/categories/:id
+
 router.delete("/:id", async (req, res) => {
   const id = Number(req.params.id);
 
@@ -253,18 +311,45 @@ router.delete("/:id", async (req, res) => {
     });
   }
 
+  let connection;
+
   try {
-    const [result] = await pool.query(
-      "DELETE FROM categories WHERE CategoryID = ?",
+    connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    const [categories] = await connection.query(
+      `SELECT CategoryID AS id, CategoryName AS name
+       FROM categories
+       WHERE CategoryID = ?
+       LIMIT 1`,
       [id],
     );
 
-    if (result.affectedRows === 0) {
+    if (categories.length === 0) {
+      await connection.rollback();
+
       return res.status(404).json({
         status: "error",
         message: "Category not found",
       });
     }
+
+    const category = categories[0];
+
+    await connection.query("DELETE FROM categories WHERE CategoryID = ?", [id]);
+
+    await logActivity({
+      action: "DELETE",
+      entityType: "CATEGORY",
+      entityId: category.id,
+      description: `Deleted category: ${category.name}`,
+      metadata: {
+        name: category.name,
+      },
+      connection,
+    });
+
+    await connection.commit();
 
     return res.status(200).json({
       status: "success",
@@ -272,6 +357,14 @@ router.delete("/:id", async (req, res) => {
       data: { id },
     });
   } catch (error) {
+    if (connection) {
+      try {
+        await connection.rollback();
+      } catch (rollbackError) {
+        console.error("Category rollback error:", rollbackError.message);
+      }
+    }
+
     console.error("Delete category error:", error.message);
 
     if (
@@ -291,6 +384,8 @@ router.delete("/:id", async (req, res) => {
       status: "error",
       message: "Failed to delete category",
     });
+  } finally {
+    if (connection) connection.release();
   }
 });
 
