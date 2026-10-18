@@ -3,13 +3,15 @@ import {
   Activity,
   ChevronDown,
   LayoutDashboard,
+  LogOut,
   Package,
   Settings,
   Tags,
   Users,
   X,
 } from "lucide-react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 
 const mainNavigation = [
   { label: "Overview", path: "/", icon: LayoutDashboard },
@@ -20,7 +22,10 @@ const mainNavigation = [
 ];
 
 export default function Sidebar({ open = false, onClose }) {
+  const { admin, logout } = useAuth();
+  const navigate = useNavigate();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
   const userMenuRef = useRef(null);
 
   useEffect(() => {
@@ -50,6 +55,20 @@ export default function Sidebar({ open = false, onClose }) {
   function closeUserMenu() {
     setUserMenuOpen(false);
     onClose?.();
+  }
+
+  async function handleLogout() {
+    setLoggingOut(true);
+
+    try {
+      await logout();
+    } catch (error) {
+      console.error("Sign out failed:", error);
+    } finally {
+      setLoggingOut(false);
+      closeUserMenu();
+      navigate("/login", { replace: true });
+    }
   }
 
   return (
@@ -153,17 +172,21 @@ export default function Sidebar({ open = false, onClose }) {
           className="relative z-20 shrink-0 border-t border-emerald-950/5 p-3 lg:flex lg:justify-center lg:px-0 lg:py-4"
         >
           {userMenuOpen && (
-            <div className="absolute bottom-full left-3 right-3 z-[80] mb-2 rounded-2xl border border-white/80 bg-white/85 p-1.5 shadow-[0_16px_40px_rgba(15,70,45,0.18)] backdrop-blur-2xl lg:bottom-2 lg:left-[62px] lg:right-auto lg:mb-0 lg:w-52">
+            <div
+              id="account-menu"
+              className="absolute bottom-full left-3 right-3 z-[80] mb-2 rounded-2xl border border-white/80 bg-white/85 p-1.5 shadow-[0_16px_40px_rgba(15,70,45,0.18)] backdrop-blur-2xl lg:bottom-2 lg:left-[62px] lg:right-auto lg:mb-0 lg:w-52"
+            >
               <div className="rounded-xl border-b border-emerald-100/70 px-3 py-2.5">
                 <p className="text-sm font-semibold text-slate-900">
-                  Administrator
+                  {admin?.name || "Administrator"}
                 </p>
-                <p className="mt-0.5 text-xs text-slate-500">User account</p>
+                <p className="mt-0.5 truncate text-xs text-slate-500">
+                  {admin?.email || "Admin account"}
+                </p>
               </div>
 
               <NavLink
                 to="/settings"
-                role="menuitem"
                 onClick={closeUserMenu}
                 className={({ isActive }) =>
                   [
@@ -177,13 +200,24 @@ export default function Sidebar({ open = false, onClose }) {
                 <Settings size={16} />
                 Settings
               </NavLink>
+
+              <button
+                type="button"
+                onClick={handleLogout}
+                disabled={loggingOut}
+                className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60"
+              >
+                <LogOut size={16} />
+                {loggingOut ? "Signing out..." : "Sign out"}
+              </button>
             </div>
           )}
 
           <button
             type="button"
-            aria-haspopup="menu"
             aria-expanded={userMenuOpen}
+            aria-controls="account-menu"
+            aria-label="Account settings"
             onClick={() => setUserMenuOpen((current) => !current)}
             className={[
               "flex w-full items-center gap-3 rounded-2xl border p-2.5 text-left transition duration-200",
@@ -199,10 +233,10 @@ export default function Sidebar({ open = false, onClose }) {
 
             <span className="min-w-0 flex-1 lg:hidden">
               <span className="block truncate text-sm font-semibold text-slate-800">
-                Administrator
+                {admin?.name || "Administrator"}
               </span>
-              <span className="mt-0.5 block text-xs text-slate-500">
-                Account settings
+              <span className="mt-0.5 block truncate text-xs text-slate-500">
+                {admin?.email || "Account settings"}
               </span>
             </span>
 
