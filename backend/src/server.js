@@ -8,6 +8,7 @@ const dashboardRouter = require("./routes/dashboard");
 const categoriesRouter = require("./routes/categories");
 const suppliersRouter = require("./routes/suppliers");
 const customersRouter = require("./routes/customers");
+const activityLogsRouter = require("./routes/activityLogs");
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.use("/api/products", productsRouter);
 app.use("/api/categories", categoriesRouter);
 app.use("/api/suppliers", suppliersRouter);
 app.use("/api/customers", customersRouter);
+app.use("/api/activity-logs", activityLogsRouter);
 
 app.get("/api/health", async (req, res) => {
   try {

@@ -1,5 +1,6 @@
 const express = require("express");
 const pool = require("../db");
+const logActivity = require("../utils/activityLogger");
 
 const router = express.Router();
 
@@ -119,6 +120,7 @@ router.get("/:id", async (req, res) => {
 });
 
 // POST /api/customers
+
 router.post("/", async (req, res) => {
   const {
     name,
@@ -153,8 +155,13 @@ router.post("/", async (req, res) => {
     }
   }
 
+  let connection;
+
   try {
-    const [result] = await pool.query(
+    connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    const [result] = await connection.query(
       `
         INSERT INTO customers
           (
@@ -177,27 +184,49 @@ router.post("/", async (req, res) => {
       ],
     );
 
-    const [customers] = await pool.query(
+    const [customers] = await connection.query(
       `SELECT ${customerFields} FROM customers WHERE CustomerID = ?`,
       [result.insertId],
     );
 
+    const customer = customers[0];
+
+    await logActivity({
+      action: "CREATE",
+      entityType: "CUSTOMER",
+      entityId: customer.id,
+      description: `Created customer: ${customer.name}`,
+      metadata: {
+        name: customer.name,
+        city: customer.city,
+        country: customer.country,
+      },
+      connection,
+    });
+
+    await connection.commit();
+
     return res.status(201).json({
       status: "success",
       message: "Customer created successfully",
-      data: customers[0],
+      data: customer,
     });
   } catch (error) {
+    if (connection) await connection.rollback();
+
     console.error("Create customer error:", error.message);
 
     return res.status(500).json({
       status: "error",
       message: "Failed to create customer",
     });
+  } finally {
+    if (connection) connection.release();
   }
 });
 
 // PUT /api/customers/:id
+
 router.put("/:id", async (req, res) => {
   const id = Number(req.params.id);
 
@@ -241,20 +270,27 @@ router.put("/:id", async (req, res) => {
     }
   }
 
+  let connection;
+
   try {
-    const [existing] = await pool.query(
+    connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    const [existing] = await connection.query(
       "SELECT CustomerID FROM customers WHERE CustomerID = ?",
       [id],
     );
 
     if (existing.length === 0) {
+      await connection.rollback();
+
       return res.status(404).json({
         status: "error",
         message: "Customer not found",
       });
     }
 
-    await pool.query(
+    await connection.query(
       `
         UPDATE customers
         SET
@@ -277,27 +313,49 @@ router.put("/:id", async (req, res) => {
       ],
     );
 
-    const [customers] = await pool.query(
+    const [customers] = await connection.query(
       `SELECT ${customerFields} FROM customers WHERE CustomerID = ?`,
       [id],
     );
 
+    const customer = customers[0];
+
+    await logActivity({
+      action: "UPDATE",
+      entityType: "CUSTOMER",
+      entityId: customer.id,
+      description: `Updated customer: ${customer.name}`,
+      metadata: {
+        name: customer.name,
+        city: customer.city,
+        country: customer.country,
+      },
+      connection,
+    });
+
+    await connection.commit();
+
     return res.status(200).json({
       status: "success",
       message: "Customer updated successfully",
-      data: customers[0],
+      data: customer,
     });
   } catch (error) {
+    if (connection) await connection.rollback();
+
     console.error("Update customer error:", error.message);
 
     return res.status(500).json({
       status: "error",
       message: "Failed to update customer",
     });
+  } finally {
+    if (connection) connection.release();
   }
 });
 
 // DELETE /api/customers/:id
+
 router.delete("/:id", async (req, res) => {
   const id = Number(req.params.id);
 
@@ -308,18 +366,42 @@ router.delete("/:id", async (req, res) => {
     });
   }
 
+  let connection;
+
   try {
-    const [result] = await pool.query(
-      "DELETE FROM customers WHERE CustomerID = ?",
+    connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    const [customers] = await connection.query(
+      "SELECT CustomerID AS id, CustomerName AS name FROM customers WHERE CustomerID = ?",
       [id],
     );
 
-    if (result.affectedRows === 0) {
+    if (customers.length === 0) {
+      await connection.rollback();
+
       return res.status(404).json({
         status: "error",
         message: "Customer not found",
       });
     }
+
+    const customer = customers[0];
+
+    await connection.query("DELETE FROM customers WHERE CustomerID = ?", [id]);
+
+    await logActivity({
+      action: "DELETE",
+      entityType: "CUSTOMER",
+      entityId: customer.id,
+      description: `Deleted customer: ${customer.name}`,
+      metadata: {
+        name: customer.name,
+      },
+      connection,
+    });
+
+    await connection.commit();
 
     return res.status(200).json({
       status: "success",
@@ -327,6 +409,8 @@ router.delete("/:id", async (req, res) => {
       data: { id },
     });
   } catch (error) {
+    if (connection) await connection.rollback();
+
     console.error("Delete customer error:", error.message);
 
     if (
@@ -346,6 +430,8 @@ router.delete("/:id", async (req, res) => {
       status: "error",
       message: "Failed to delete customer",
     });
+  } finally {
+    if (connection) connection.release();
   }
 });
 

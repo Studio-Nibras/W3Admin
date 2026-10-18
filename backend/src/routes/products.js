@@ -1,5 +1,6 @@
 const express = require("express");
 const pool = require("../db");
+const logActivity = require("../utils/activityLogger");
 
 const router = express.Router();
 
@@ -170,8 +171,13 @@ router.post("/", async (req, res) => {
     });
   }
 
+  let connection;
+
   try {
-    const [result] = await pool.query(
+    connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    const [result] = await connection.query(
       `
         INSERT INTO products
           (ProductName, SupplierID, CategoryID, Unit, Price)
@@ -180,7 +186,7 @@ router.post("/", async (req, res) => {
       [name.trim(), supplierId, categoryId, unit.trim(), price],
     );
 
-    const [products] = await pool.query(
+    const [products] = await connection.query(
       `
         SELECT
           ProductID AS id,
@@ -195,12 +201,33 @@ router.post("/", async (req, res) => {
       [result.insertId],
     );
 
+    const product = products[0];
+
+    await logActivity({
+      action: "CREATE",
+      entityType: "PRODUCT",
+      entityId: product.id,
+      description: `Created product: ${product.name}`,
+      metadata: {
+        name: product.name,
+        categoryId: product.categoryId,
+        supplierId: product.supplierId,
+      },
+      connection,
+    });
+
+    await connection.commit();
+
     return res.status(201).json({
       status: "success",
       message: "Product created successfully",
-      data: products[0],
+      data: product,
     });
   } catch (error) {
+    if (connection) {
+      await connection.rollback();
+    }
+
     console.error("Create product error:", error.message);
 
     if (error.code === "ER_NO_REFERENCED_ROW_2") {
@@ -214,6 +241,8 @@ router.post("/", async (req, res) => {
       status: "error",
       message: "Failed to create product",
     });
+  } finally {
+    if (connection) connection.release();
   }
 });
 
@@ -261,20 +290,27 @@ router.put("/:id", async (req, res) => {
     });
   }
 
+  let connection;
+
   try {
-    const [existing] = await pool.query(
+    connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    const [existing] = await connection.query(
       "SELECT ProductID FROM products WHERE ProductID = ?",
       [id],
     );
 
     if (existing.length === 0) {
+      await connection.rollback();
+
       return res.status(404).json({
         status: "error",
         message: "Product not found",
       });
     }
 
-    await pool.query(
+    await connection.query(
       `
         UPDATE products
         SET
@@ -288,7 +324,7 @@ router.put("/:id", async (req, res) => {
       [name.trim(), supplierId, categoryId, unit.trim(), price, id],
     );
 
-    const [products] = await pool.query(
+    const [products] = await connection.query(
       `
         SELECT
           ProductID AS id,
@@ -303,12 +339,33 @@ router.put("/:id", async (req, res) => {
       [id],
     );
 
+    const product = products[0];
+
+    await logActivity({
+      action: "UPDATE",
+      entityType: "PRODUCT",
+      entityId: product.id,
+      description: `Updated product: ${product.name}`,
+      metadata: {
+        name: product.name,
+        categoryId: product.categoryId,
+        supplierId: product.supplierId,
+      },
+      connection,
+    });
+
+    await connection.commit();
+
     return res.status(200).json({
       status: "success",
       message: "Product updated successfully",
-      data: products[0],
+      data: product,
     });
   } catch (error) {
+    if (connection) {
+      await connection.rollback();
+    }
+
     console.error("Update product error:", error.message);
 
     if (error.code === "ER_NO_REFERENCED_ROW_2") {
@@ -322,6 +379,8 @@ router.put("/:id", async (req, res) => {
       status: "error",
       message: "Failed to update product",
     });
+  } finally {
+    if (connection) connection.release();
   }
 });
 
@@ -336,18 +395,42 @@ router.delete("/:id", async (req, res) => {
     });
   }
 
+  let connection;
+
   try {
-    const [result] = await pool.query(
-      "DELETE FROM products WHERE ProductID = ?",
+    connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    const [products] = await connection.query(
+      "SELECT ProductID AS id, ProductName AS name FROM products WHERE ProductID = ?",
       [id],
     );
 
-    if (result.affectedRows === 0) {
+    if (products.length === 0) {
+      await connection.rollback();
+
       return res.status(404).json({
         status: "error",
         message: "Product not found",
       });
     }
+
+    const product = products[0];
+
+    await connection.query("DELETE FROM products WHERE ProductID = ?", [id]);
+
+    await logActivity({
+      action: "DELETE",
+      entityType: "PRODUCT",
+      entityId: product.id,
+      description: `Deleted product: ${product.name}`,
+      metadata: {
+        name: product.name,
+      },
+      connection,
+    });
+
+    await connection.commit();
 
     return res.status(200).json({
       status: "success",
@@ -355,6 +438,10 @@ router.delete("/:id", async (req, res) => {
       data: { id },
     });
   } catch (error) {
+    if (connection) {
+      await connection.rollback();
+    }
+
     console.error("Delete product error:", error.message);
 
     if (
@@ -374,6 +461,8 @@ router.delete("/:id", async (req, res) => {
       status: "error",
       message: "Failed to delete product",
     });
+  } finally {
+    if (connection) connection.release();
   }
 });
 
