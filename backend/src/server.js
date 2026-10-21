@@ -14,6 +14,7 @@ const customersRouter = require("./routes/customers");
 const activityLogsRouter = require("./routes/activityLogs");
 const authRouter = require("./routes/auth");
 const requireAuth = require("./middleware/requireAuth");
+const settingsRouter = require("./routes/settings");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -93,6 +94,7 @@ app.use("/api/categories", requireAuth, categoriesRouter);
 app.use("/api/suppliers", requireAuth, suppliersRouter);
 app.use("/api/customers", requireAuth, customersRouter);
 app.use("/api/activity-logs", requireAuth, activityLogsRouter);
+app.use("/api/settings", requireAuth, settingsRouter);
 
 app.get("/api/health", async (req, res) => {
   try {
