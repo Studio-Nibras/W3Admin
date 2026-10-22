@@ -4,6 +4,7 @@ const express = require("express");
 const cors = require("cors");
 const session = require("express-session");
 const MySQLStoreFactory = require("express-mysql-session");
+const fs = require("node:fs");
 
 const pool = require("./db");
 const productsRouter = require("./routes/products");
@@ -20,7 +21,15 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 if (!process.env.SESSION_SECRET) {
-  throw new Error("SESSION_SECRET must be configured in .env");
+  throw new Error("SESSION_SECRET must be configured");
+}
+
+if (process.env.NODE_ENV === "production") {
+  app.set("trust proxy", 1);
+
+  if (!process.env.DB_SSL_CA) {
+    throw new Error("DB_SSL_CA must be configured in production");
+  }
 }
 
 const allowedOrigins = [
@@ -28,6 +37,13 @@ const allowedOrigins = [
   "http://127.0.0.1:5173",
   process.env.CLIENT_URL,
 ].filter(Boolean);
+
+const ssl = process.env.DB_SSL_CA
+  ? {
+      ca: fs.readFileSync(process.env.DB_SSL_CA, "utf8"),
+      rejectUnauthorized: true,
+    }
+  : undefined;
 
 const MySQLStore = MySQLStoreFactory(session);
 
@@ -37,6 +53,7 @@ const sessionStore = new MySQLStore({
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
+  ssl,
   clearExpired: true,
   checkExpirationInterval: 15 * 60 * 1000,
   expiration: 24 * 60 * 60 * 1000,
@@ -116,5 +133,5 @@ app.get("/api/health", async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`W3Admin API running at http://localhost:${PORT}`);
+  console.log(`W3Admin API running on port ${PORT}`);
 });
