@@ -8,3 +8,6 @@ backend/.env
 
 # Local database reference clone
 database-reference/
+
+# Local certificates
+/certs/

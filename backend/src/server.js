@@ -27,8 +27,8 @@ if (!process.env.SESSION_SECRET) {
 if (process.env.NODE_ENV === "production") {
   app.set("trust proxy", 1);
 
-  if (!process.env.DB_SSL_CA) {
-    throw new Error("DB_SSL_CA must be configured in production");
+  if (!process.env.DB_SSL_CA_CONTENT && !process.env.DB_SSL_CA) {
+    throw new Error("Database CA certificate must be configured");
   }
 }
 
@@ -38,9 +38,15 @@ const allowedOrigins = [
   process.env.CLIENT_URL,
 ].filter(Boolean);
 
-const ssl = process.env.DB_SSL_CA
+const caContent = process.env.DB_SSL_CA_CONTENT
+  ? process.env.DB_SSL_CA_CONTENT.replace(/\\n/g, "\n")
+  : process.env.DB_SSL_CA
+    ? fs.readFileSync(process.env.DB_SSL_CA, "utf8")
+    : null;
+
+const ssl = caContent
   ? {
-      ca: fs.readFileSync(process.env.DB_SSL_CA, "utf8"),
+      ca: caContent,
       rejectUnauthorized: true,
     }
   : undefined;
@@ -132,6 +138,10 @@ app.get("/api/health", async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`W3Admin API running on port ${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`W3Admin API running on port ${PORT}`);
+  });
+}
+
+module.exports = app;

@@ -2,13 +2,19 @@ const fs = require("node:fs");
 const mysql = require("mysql2/promise");
 require("dotenv").config();
 
-if (process.env.NODE_ENV === "production" && !process.env.DB_SSL_CA) {
-  throw new Error("DB_SSL_CA must be configured in production");
+const caContent = process.env.DB_SSL_CA_CONTENT
+  ? process.env.DB_SSL_CA_CONTENT.replace(/\\n/g, "\n")
+  : process.env.DB_SSL_CA
+    ? fs.readFileSync(process.env.DB_SSL_CA, "utf8")
+    : null;
+
+if (process.env.NODE_ENV === "production" && !caContent) {
+  throw new Error("DB_SSL_CA_CONTENT or DB_SSL_CA must be configured");
 }
 
-const ssl = process.env.DB_SSL_CA
+const ssl = caContent
   ? {
-      ca: fs.readFileSync(process.env.DB_SSL_CA, "utf8"),
+      ca: caContent,
       rejectUnauthorized: true,
     }
   : undefined;
@@ -21,7 +27,7 @@ const pool = mysql.createPool({
   database: process.env.DB_NAME,
   ssl,
   waitForConnections: true,
-  connectionLimit: 10,
+  connectionLimit: 5,
   queueLimit: 0,
 });
 
