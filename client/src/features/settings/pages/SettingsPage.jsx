@@ -226,16 +226,14 @@ export default function SettingsPage() {
   return (
     <section className="mx-auto max-w-5xl space-y-6">
       <header>
-        <div className="mb-2 flex items-center gap-2 text-sm text-emerald-700">
-          <ShieldCheck size={16} />
-          <span>Account management</span>
+        <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-emerald-200/80 bg-white/60 px-3 py-1.5 text-xs font-semibold text-emerald-800 shadow-sm backdrop-blur">
+          <ShieldCheck size={14} />
+          ACCOUNT
         </div>
-
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+        <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
           Settings
         </h1>
-
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-2 text-sm text-slate-600">
           Manage your administrator profile and account security.
         </p>
       </header>

@@ -179,18 +179,16 @@ export default function ActivityLogsPage() {
 
   return (
     <section className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <div className="mb-2 flex items-center gap-2 text-sm text-emerald-700">
-            <Activity size={16} />
-            <span>System monitoring</span>
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-emerald-200/80 bg-white/60 px-3 py-1.5 text-xs font-semibold text-emerald-800 shadow-sm backdrop-blur">
+            <Activity size={14} />
+            ACTIVITY
           </div>
-
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
             Activity Logs
           </h1>
-
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-2 text-sm text-slate-600">
             Review administrative actions recorded by W3Admin.
           </p>
         </div>
@@ -198,15 +196,15 @@ export default function ActivityLogsPage() {
         <Button
           onClick={loadLogs}
           disabled={loading}
-          className="self-start sm:self-auto"
+          className="bg-gradient-to-r from-emerald-600 to-green-700 hover:from-emerald-700 hover:to-green-800"
         >
           <RefreshCw
             size={16}
-            className={`mr-2 ${loading ? "animate-spin" : ""}`}
+            className={loading ? "animate-spin" : ""}
           />
           Refresh
         </Button>
-      </div>
+      </header>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="rounded-2xl border border-white/80 bg-white/70 p-5 shadow-sm">

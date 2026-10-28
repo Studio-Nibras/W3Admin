@@ -84,9 +84,9 @@ export default function Sidebar({ open = false, onClose }) {
 
       <aside
         className={[
-          "fixed inset-y-3 left-3 z-50 flex w-[min(86vw,300px)] flex-col overflow-visible rounded-[24px]",
+          "fixed inset-y-3 left-3 z-50 group/sidebar flex w-[min(86vw,300px)] flex-col overflow-visible rounded-[24px]",
           "border border-white/70 bg-white/55 shadow-[0_16px_48px_rgba(15,70,45,0.16),inset_0_1px_0_rgba(255,255,255,0.9)] backdrop-blur-2xl",
-          "transition-transform duration-300 ease-out lg:w-[76px] lg:translate-x-0",
+          "transition-[width,transform] duration-300 ease-out lg:w-[76px] lg:hover:w-[240px] lg:translate-x-0",
           open ? "translate-x-0" : "-translate-x-[110%] lg:translate-x-0",
         ].join(" ")}
       >
@@ -95,8 +95,8 @@ export default function Sidebar({ open = false, onClose }) {
           className="pointer-events-none absolute inset-0 rounded-[inherit] bg-gradient-to-br from-white/75 via-white/35 to-emerald-100/30"
         />
 
-        <div className="relative z-10 flex h-[72px] shrink-0 items-center justify-between border-b border-emerald-950/5 px-4 lg:justify-center lg:px-0">
-          <div className="flex items-center gap-3 lg:justify-center">
+        <div className="relative z-10 flex h-[72px] shrink-0 items-center justify-between border-b border-emerald-950/5 px-4 lg:justify-center lg:group-hover/sidebar:justify-start">
+          <div className="flex items-center gap-3 lg:w-full lg:justify-center lg:group-hover/sidebar:justify-start">
             <NavLink
               to="/"
               onClick={onClose}
@@ -106,9 +106,9 @@ export default function Sidebar({ open = false, onClose }) {
               W
             </NavLink>
 
-            <div className="lg:hidden">
+            <div className="lg:max-w-0 lg:overflow-hidden lg:whitespace-nowrap lg:opacity-0 lg:transition-[max-width,opacity] lg:duration-200 lg:group-hover/sidebar:max-w-40 lg:group-hover/sidebar:opacity-100">
               <p className="text-sm font-semibold text-slate-900">W3Admin</p>
-              <p className="mt-0.5 text-xs text-slate-500">Workspace</p>
+              <p className="mt-0.5 text-xs text-slate-500">Admin Workspace</p>
             </div>
           </div>
 
@@ -124,7 +124,7 @@ export default function Sidebar({ open = false, onClose }) {
 
         <nav
           aria-label="Main navigation"
-          className="relative z-10 flex flex-1 flex-col gap-1.5 overflow-y-auto px-3 py-5 lg:items-center lg:gap-2 lg:px-0"
+          className="relative z-10 flex flex-1 flex-col gap-1.5 overflow-y-auto px-3 py-5 lg:items-center lg:gap-2 lg:group-hover/sidebar:items-stretch"
         >
           <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400 lg:hidden">
             Main menu
@@ -140,8 +140,8 @@ export default function Sidebar({ open = false, onClose }) {
               onClick={onClose}
               className={({ isActive }) =>
                 [
-                  "group relative flex min-h-11 w-full shrink-0 items-center gap-3 rounded-2xl px-3 transition duration-200",
-                  "lg:size-11 lg:w-11 lg:justify-center lg:gap-0 lg:px-0",
+                  "relative flex min-h-11 w-full shrink-0 items-center gap-3 rounded-2xl px-3 transition-all duration-300",
+                  "lg:h-11 lg:w-11 lg:justify-center lg:gap-0 lg:px-0 lg:group-hover/sidebar:w-full lg:group-hover/sidebar:justify-start lg:group-hover/sidebar:gap-3 lg:group-hover/sidebar:px-3",
                   isActive
                     ? "bg-gradient-to-r from-emerald-600 to-green-700 text-white shadow-[0_5px_16px_rgba(5,150,105,0.24)] lg:bg-gradient-to-br"
                     : "text-slate-600 hover:bg-white/75 hover:text-emerald-800 hover:shadow-sm lg:text-slate-500",
@@ -151,14 +151,12 @@ export default function Sidebar({ open = false, onClose }) {
               {({ isActive }) => (
                 <>
                   {isActive && (
-                    <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full bg-lime-300 lg:-left-[17px] lg:top-1/2 lg:bottom-auto lg:h-6 lg:w-[3px] lg:-translate-y-1/2 lg:bg-gradient-to-b lg:from-lime-300 lg:to-emerald-600 lg:shadow-[0_0_10px_rgba(16,185,129,0.45)]" />
+                    <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full bg-lime-300 lg:left-0 lg:top-1/2 lg:bottom-auto lg:h-6 lg:w-[3px] lg:-translate-y-1/2 lg:bg-gradient-to-b lg:from-lime-300 lg:to-emerald-600 lg:shadow-[0_0_10px_rgba(16,185,129,0.45)]" />
                   )}
 
                   <Icon size={19} strokeWidth={1.8} className="shrink-0" />
 
-                  <span className="text-sm font-medium lg:hidden">{label}</span>
-
-                  <span className="pointer-events-none absolute left-[54px] z-[70] hidden translate-x-1 whitespace-nowrap rounded-lg border border-white/60 bg-slate-900/85 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 shadow-lg backdrop-blur-xl transition duration-150 group-hover:translate-x-0 group-hover:opacity-100 group-focus-visible:translate-x-0 group-focus-visible:opacity-100 lg:block">
+                  <span className="text-sm font-medium lg:max-w-0 lg:overflow-hidden lg:whitespace-nowrap lg:opacity-0 lg:transition-[max-width,opacity] lg:duration-200 lg:group-hover/sidebar:max-w-40 lg:group-hover/sidebar:opacity-100">
                     {label}
                   </span>
                 </>
@@ -169,7 +167,7 @@ export default function Sidebar({ open = false, onClose }) {
 
         <div
           ref={userMenuRef}
-          className="relative z-20 shrink-0 border-t border-emerald-950/5 p-3 lg:flex lg:justify-center lg:px-0 lg:py-4"
+          className="relative z-20 shrink-0 border-t border-emerald-950/5 p-3 lg:flex lg:justify-center lg:py-4 lg:group-hover/sidebar:justify-start"
         >
           {userMenuOpen && (
             <div
@@ -221,7 +219,7 @@ export default function Sidebar({ open = false, onClose }) {
             onClick={() => setUserMenuOpen((current) => !current)}
             className={[
               "flex w-full items-center gap-3 rounded-2xl border p-2.5 text-left transition duration-200",
-              "lg:size-10 lg:w-10 lg:justify-center lg:rounded-2xl lg:p-0",
+              "lg:h-10 lg:w-10 lg:justify-center lg:rounded-2xl lg:p-0 lg:group-hover/sidebar:w-full lg:group-hover/sidebar:justify-start lg:group-hover/sidebar:px-2",
               userMenuOpen
                 ? "border-emerald-300/80 bg-emerald-100/80 text-emerald-800"
                 : "border-white/80 bg-white/55 text-emerald-800 hover:bg-white/85 hover:shadow-sm",
@@ -231,7 +229,7 @@ export default function Sidebar({ open = false, onClose }) {
               AD
             </span>
 
-            <span className="min-w-0 flex-1 lg:hidden">
+            <span className="min-w-0 flex-1 lg:max-w-0 lg:overflow-hidden lg:whitespace-nowrap lg:opacity-0 lg:transition-[max-width,opacity] lg:duration-200 lg:group-hover/sidebar:max-w-40 lg:group-hover/sidebar:opacity-100">
               <span className="block truncate text-sm font-semibold text-slate-800">
                 {admin?.name || "Administrator"}
               </span>
